@@ -5,38 +5,48 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Excercise4MondayClient
 {
     class Program
     {
+        private static TcpClient client = new TcpClient("localhost", 50000);
+        private static StreamReader sr = new StreamReader(client.GetStream());
+        private static StreamWriter sw = new StreamWriter(client.GetStream());
+
         static void Main(string[] args)
         {
-            TcpClient client = new TcpClient("localhost", 50000);
-            StreamReader sr = new StreamReader(client.GetStream());
-            StreamWriter sw = new StreamWriter(client.GetStream());
+            Program p = new Program();
+            p.Run();
+        }
 
-            try
+        private void Run()
+        {
+            Thread readerThread = new Thread(Reader);
+            readerThread.Start();
+            Thread writerThread = new Thread(Writer);
+            writerThread.Start();
+        }
+        private void Reader()
+        {
+            string read = sr.ReadLine();
+            do
             {
-                string data = Console.ReadLine();
+                Console.WriteLine(read);
+                read = sr.ReadLine();
+            } while (read != "" && read != null);
+        }
+        private void Writer()
+        {
+            string data = "";
+            do
+            {
+                data = Console.ReadLine();
                 sw.WriteLine(data);
                 sw.Flush();
-                while (data != null)
-                {
-                    data = sr.ReadLine();
-                    Console.WriteLine(data);
-
-                    data = Console.ReadLine();
-                    sw.WriteLine(data);
-                    sw.Flush();
-                }
-                client.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+            } while (data != "" && data != null);
         }
     }
 }
